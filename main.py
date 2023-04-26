@@ -34,6 +34,15 @@ class App(ctk.CTk):
         self.image_import.grid_forget()
         # we are directly importing resize image in image output
         self.image_output = ImageOutput(self, self.resize_image)
+        self.close_button = CloseOutput(self, self.close_edit)
+
+    # close btn funcationality
+    def close_edit(self):
+        # hide the image and close btn
+        self.image_output.grid_forget()
+        self.close_button.place_forget()
+        # recreate the close button
+        self.image_import = ImageImport(self, self.import_image)
 
     # putting image into canvas
     def resize_image(self, event):
