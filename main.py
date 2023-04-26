@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from image_widgets import *
 from PIL import Image, ImageTk
+from menu import Menu
 
 
 class App(ctk.CTk):
@@ -9,14 +10,15 @@ class App(ctk.CTk):
         super().__init__()
         ctk.set_appearance_mode('dark')
         self.geometry('1000x600')
-        self.title('Photo Editor')
+        self.title('Flux-Image-Editor')
         self.minsize(800, 500)
 
         # layout
         self.rowconfigure(0, weight=1)
-        self.columnconfigure(0, weight=2)
-        self.columnconfigure(1, weight=6)
+        self.columnconfigure(0, weight=2, uniform='a')
+        self.columnconfigure(1, weight=6, uniform='a')
 
+        # widgets
         # ImportButton (Frame with a button)
         self.image_import = ImageImport(self, self.import_image)
 
@@ -35,12 +37,15 @@ class App(ctk.CTk):
         # we are directly importing resize image in image output
         self.image_output = ImageOutput(self, self.resize_image)
         self.close_button = CloseOutput(self, self.close_edit)
+        self.menu = Menu(self)
 
     # close btn funcationality
     def close_edit(self):
         # hide the image and close btn
         self.image_output.grid_forget()
         self.close_button.place_forget()
+        self.menu.grid_forget()
+
         # recreate the close button
         self.image_import = ImageImport(self, self.import_image)
 
