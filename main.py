@@ -12,11 +12,18 @@ class App(ctk.CTk):
         self.geometry('1000x600')
         self.title('Flux-Image-Editor')
         self.minsize(800, 500)
+        self.init__parameters()
 
         # layout
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=2, uniform='a')
         self.columnconfigure(1, weight=6, uniform='a')
+        
+        # canvas data
+        self.image_width = 0
+        self.image_height = 0
+        self.canvas_width = 0
+        self.canvas_height = 0
 
         # widgets
         # ImportButton (Frame with a button)
@@ -25,9 +32,23 @@ class App(ctk.CTk):
         # run
         self.mainloop()
 
+    def init__parameters(self):
+        self.rotate_float = ctk.DoubleVar(value = ROTATE_DEFAULT)
+        
+        self.rotate_float.trace('w', self.manipulate_image)
+        
+    def manipulate_image(self, *args):
+        self.image = self.original
+        
+        # rotate 
+        self.image = self.image.rotate(self.rotate_float.get())
+        
+        self.place_image()
+
     # import image from path
     def import_image(self, path):
-        self.image = Image.open(path)
+        self.original = Image.open(path) # original image
+        self.image = self.original # copy of original image
         self.image_ratio = self.image.size[0] / \
             self.image.size[1]  # image ratio
         self.image_tk = ImageTk.PhotoImage(self.image)
@@ -37,7 +58,7 @@ class App(ctk.CTk):
         # we are directly importing resize image in image output
         self.image_output = ImageOutput(self, self.resize_image)
         self.close_button = CloseOutput(self, self.close_edit)
-        self.menu = Menu(self)
+        self.menu = Menu(self, self.rotate_float)
 
     # close btn funcationality
     def close_edit(self):
@@ -54,21 +75,29 @@ class App(ctk.CTk):
 
         # current canvas ratio
         canvas_ratio = event.width / event.height
+        
+        # update canvas attributes
+        self.canvas_width = event.width
+        self.canvas_height = event.height
+
 
         # resize
         if canvas_ratio > self.image_ratio:  # canvas is wider tham image
-            image_height = int(event.height)
-            image_width = int(image_height * self.image_ratio)
+            self.image_height = int(event.height)
+            self.image_width = int(self.image_height * self.image_ratio)
         else:  # image is wider than the canvas
-            image_width = int(event.width)
-            image_height = int(image_width / self.image_ratio)
+            self.image_width = int(event.width)
+            self.image_height = int(self.image_width / self.image_ratio)
+            
+        self.place_image()
 
-        # place image
+# place image
+    def place_image(self):
         self.image_output.delete('all')
-        resized_image = self.image.resize((image_width, image_height))
+        resized_image = self.image.resize((self.image_width, self.image_height))
         self.image_tk = ImageTk.PhotoImage(resized_image)
         self.image_output.create_image(
-            event.width / 2, event.height / 2, image=self.image_tk)  # [x,y,imagetk]
+            self.canvas_width / 2, self.canvas_height / 2, image=self.image_tk)  # [x,y,imagetk]
 
 
 App()
