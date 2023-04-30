@@ -18,7 +18,7 @@ class App(ctk.CTk):
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=2, uniform='a')
         self.columnconfigure(1, weight=6, uniform='a')
-        
+
         # canvas data
         self.image_width = 0
         self.image_height = 0
@@ -33,27 +33,48 @@ class App(ctk.CTk):
         self.mainloop()
 
     def init__parameters(self):
-        self.rotate_float = ctk.DoubleVar(value = ROTATE_DEFAULT)
-        self.zoom_float = ctk.DoubleVar(value = ZOOM_DEFAULT)
-        
-        self.rotate_float.trace('w', self.manipulate_image)
-        self.zoom_float.trace('w', self.manipulate_image)
-        
+        # Dictionaries
+        self.pos_vars = {
+            'rotate': ctk.DoubleVar(value=ROTATE_DEFAULT),
+            'zoom': ctk.DoubleVar(value=ZOOM_DEFAULT),
+            'flip': ctk.StringVar(value=FLIP_OPTIONS[0])
+        }
+        self.color_vars = {
+            'brightness': ctk.DoubleVar(value=BRIGHTNESS_DEFAULT),
+            'grayscale': ctk.BooleanVar(value=GRAYSCALE_DEFAULT),
+            'invert': ctk.BooleanVar(value=INVERT_DEFAULT),
+            'vibrance': ctk.DoubleVar(value=VIBRANCE_DEFAULT)
+        }
+        self.effect_vars = {
+            'blur': ctk.DoubleVar(value=BLUR_DEFAULT),
+            'contrast': ctk.IntVar(value=CONTRAST_DEFAULT),
+            'effect': ctk.StringVar(value=EFFECT_OPTIONS[0])
+        }
+
+        # tracing
+        # combining list because they are easier to combine than dictionaries
+        combined_var = list(self.pos_vars.values(
+        )) + list(self.color_vars.values()) + list(self.effect_vars.values())
+        # loop to apply trace on all of the variables(vars)
+        for var in combined_var:
+            var.trace('w', self.manipulate_image)
+
     def manipulate_image(self, *args):
         self.image = self.original
-        
-        # rotate 
-        self.image = self.image.rotate(self.rotate_float.get())
-        
+
+        # rotate
+        self.image = self.image.rotate(self.pos_vars['rotate'].get())
+
         # zoom
-        self.image = ImageOps.crop(image=self.image, border=self.zoom_float.get())
-        
+        self.image = ImageOps.crop(
+            image=self.image, border=self.pos_vars['zoom'].get())
+
         self.place_image()
 
     # import image from path
     def import_image(self, path):
-        self.original = Image.open(path) # original image
-        self.image = self.original # copy of original image
+        self.original = Image.open(path)  # original image
+        self.image = self.original  # copy of original image
         self.image_ratio = self.image.size[0] / \
             self.image.size[1]  # image ratio
         self.image_tk = ImageTk.PhotoImage(self.image)
@@ -63,7 +84,8 @@ class App(ctk.CTk):
         # we are directly importing resize image in image output
         self.image_output = ImageOutput(self, self.resize_image)
         self.close_button = CloseOutput(self, self.close_edit)
-        self.menu = Menu(self, self.rotate_float, self.zoom_float)
+        self.menu = Menu(self, self.pos_vars,
+                         self.color_vars, self.effect_vars)
 
     # close btn funcationality
     def close_edit(self):
@@ -80,11 +102,10 @@ class App(ctk.CTk):
 
         # current canvas ratio
         canvas_ratio = event.width / event.height
-        
+
         # update canvas attributes
         self.canvas_width = event.width
         self.canvas_height = event.height
-
 
         # resize
         if canvas_ratio > self.image_ratio:  # canvas is wider tham image
@@ -93,13 +114,14 @@ class App(ctk.CTk):
         else:  # image is wider than the canvas
             self.image_width = int(event.width)
             self.image_height = int(self.image_width / self.image_ratio)
-            
+
         self.place_image()
 
 # place image
     def place_image(self):
         self.image_output.delete('all')
-        resized_image = self.image.resize((self.image_width, self.image_height))
+        resized_image = self.image.resize(
+            (self.image_width, self.image_height))
         self.image_tk = ImageTk.PhotoImage(resized_image)
         self.image_output.create_image(
             self.canvas_width / 2, self.canvas_height / 2, image=self.image_tk)  # [x,y,imagetk]
