@@ -46,7 +46,7 @@ class SwitchPanel(Panel):
                 self, text=text, variable=var, button_color=BLUE, fg_color=SLIDER_BG)
             switch.pack(side='left', expand=True, fill='both', padx=5, pady=5)
             
-class DropDownPanel(Panel):
+class DropDownPanel(ctk.CTkOptionMenu):
     def __init__(self, parent, data_var, options):  # ((var, text), (var, text)) ~ basically tuples
-        super().__init__(master=parent, values = options)
+        super().__init__(master=parent, values = options, fg_color=DARK_GREY, button_color= DROPDOWN_MAIN_COLOR, button_hover_color= DROPDOWN_Hover_COLOR, dropdown_fg_color= DROPDOWN_MENU_COLOR, variable=data_var)
         self.pack(fill = 'x', pady = 4)
